@@ -69,9 +69,9 @@ export default function InvoicePreview() {
           <div className="flex justify-between items-start border-b-2 border-slate-800 pb-6 mb-6">
             <div className="flex gap-4 items-center">
               {/* Logo Placeholder */}
-              <div className="w-16 h-16 bg-blue-50 border-2 border-blue-200 flex items-center justify-center font-bold text-blue-700 rounded-lg text-xs">
+              {/* <div className="w-16 h-16 bg-blue-50 border-2 border-blue-200 flex items-center justify-center font-bold text-blue-700 rounded-lg text-xs">
                 LOGO
-              </div>
+              </div> */}
               <div>
                 <h1 className="text-2xl font-extrabold text-blue-800 tracking-tight">LOGISTICS PRO</h1>
                 <div className="mt-1 text-slate-700 text-sm space-y-0.5">

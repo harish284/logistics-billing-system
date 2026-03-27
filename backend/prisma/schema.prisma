@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      Role     @default(STAFF)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  STAFF
+}
+
+model Customer {
+  id        String     @id @default(uuid())
+  name      String
+  email     String     @unique
+  phone     String?
+  address   String?
+  
+  shipments Shipment[]
+  invoices  Invoice[]
+  rateCards RateCard[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model RateCard {
+  id          String   @id @default(uuid())
+  name        String
+  origin      String
+  destination String
+  baseRate    Float
+  perKgRate   Float
+  currency    String   @default("USD")
+  isActive    Boolean  @default(true)
+  
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Shipment {
+  id             String    @id @default(uuid())
+  trackingNumber String    @unique
+  origin         String
+  destination    String
+  weight         Float
+  status         ShipmentStatus @default(PENDING)
+  price          Float?    // Calculated price based on RateCard
+  
+  customerId     String
+  customer       Customer  @relation(fields: [customerId], references: [id])
+  
+  invoiceId      String?
+  invoice        Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+enum ShipmentStatus {
+  PENDING
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  invoiceNumber String   @unique
+  totalAmount   Float
+  subtotal      Float?
+  taxAmount     Float?
+  discountAmount Float?
+  notes         String?
+  terms         String?
+  status        InvoiceStatus @default(DRAFT)
+  issueDate     DateTime @default(now())
+  dueDate       DateTime
+  
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id])
+  
+  shipments     Shipment[]
+  payments      Payment[]
+  items         InvoiceItem[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  amount        Float
+  paymentMethod String   // e.g., CREDIT_CARD, BANK_TRANSFER, CASH
+  reference     String?  // Transaction ID or check number
+  paymentDate   DateTime @default(now())
+  
+  invoiceId     String
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model InvoiceItem {
+  id            String   @id @default(uuid())
+  description   String
+  quantity      Float
+  price         Float
+  total         Float
+
+  invoiceId     String
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model CompanyProfile {
+  id          String   @id @default(uuid())
+  name        String
+  logoUrl     String?
+  address     String?
+  phone       String?
+  email       String?
+  gstNumber   String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
